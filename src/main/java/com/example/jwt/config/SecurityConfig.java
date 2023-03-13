@@ -1,5 +1,6 @@
 package com.example.jwt.config;
 
+import com.example.jwt.config.jwt.JwtAuthenticationFilter;
 import com.example.jwt.filter.MyFilter1;
 import com.example.jwt.filter.MyFilter3;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilter(corsFilter)  // 설정한 CORS 필터 활성화, @CrossOrigin(인증 X), Security 필터에 등록 인증(O)
                 .formLogin().disable()  // form 로그인 비활성화
                 .httpBasic().disable()  // 기본 http 로그인 비활성화
+                .addFilter(new JwtAuthenticationFilter(authenticationManager()))  // form 로그인 비활성화에 따른 UsernamePasswordAuthenticationFilter 추가
                 .authorizeRequests()
                 .antMatchers("/api/v1/user/**")
                 .access("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
