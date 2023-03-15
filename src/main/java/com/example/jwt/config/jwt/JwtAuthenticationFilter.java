@@ -1,5 +1,7 @@
 package com.example.jwt.config.jwt;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.example.jwt.config.auth.PrincipalDetails;
 import com.example.jwt.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Date;
 
 /**
  * Spring Security 에 존재하는 UsernamePasswordAuthenticationFilter
@@ -85,6 +88,16 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         log.info("successfulAuthentication 실행 됨 : 인증 완료되었다는 의미");
 
-        super.successfulAuthentication(request, response, chain, authResult);
+        PrincipalDetails principalDetails = (PrincipalDetails) authResult.getPrincipal();
+
+        // HMAC512 Hash 암호 방식
+        String jwtToken = JWT.create()
+                .withSubject("JWT 토큰")
+                .withExpiresAt(new Date(System.currentTimeMillis() + (60000 * 10)))  // 현재 시간 + 10분
+                .withClaim("id", principalDetails.getUser().getId())
+                .withClaim("username", principalDetails.getUser().getUsername())
+                .sign(Algorithm.HMAC512("JWT SECRET"));
+
+        response.addHeader("Authorization", "Bearer " + jwtToken);
     }
 }
