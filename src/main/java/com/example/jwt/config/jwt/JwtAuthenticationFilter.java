@@ -92,12 +92,12 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         // HMAC512 Hash 암호 방식
         String jwtToken = JWT.create()
-                .withSubject("JWT 토큰")
-                .withExpiresAt(new Date(System.currentTimeMillis() + (60000 * 10)))  // 현재 시간 + 10분
+                .withSubject(principalDetails.getUsername())
+                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME))
                 .withClaim("id", principalDetails.getUser().getId())
                 .withClaim("username", principalDetails.getUser().getUsername())
-                .sign(Algorithm.HMAC512("JWT SECRET"));
+                .sign(Algorithm.HMAC512(JwtProperties.SECRET));
 
-        response.addHeader("Authorization", "Bearer " + jwtToken);
+        response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
     }
 }

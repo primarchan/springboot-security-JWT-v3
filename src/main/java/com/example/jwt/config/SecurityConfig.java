@@ -1,8 +1,8 @@
 package com.example.jwt.config;
 
 import com.example.jwt.config.jwt.JwtAuthenticationFilter;
-import com.example.jwt.filter.MyFilter1;
-import com.example.jwt.filter.MyFilter3;
+import com.example.jwt.config.jwt.JwtAuthorizationFilter;
+import com.example.jwt.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,8 +11,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.web.filter.CorsFilter;
 
 @Configuration
@@ -22,6 +20,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final CorsFilter corsFilter;
 
+    private final UserRepository userRepository;
+
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -29,7 +29,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.addFilterBefore(new MyFilter3(), SecurityContextPersistenceFilter.class);
+        // http.addFilterBefore(new MyFilter3(), SecurityContextPersistenceFilter.class);
 
         // csrf 비활성화
         http.csrf().disable();
@@ -41,6 +41,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin().disable()  // form 로그인 비활성화
                 .httpBasic().disable()  // 기본 http 로그인 비활성화
                 .addFilter(new JwtAuthenticationFilter(authenticationManager()))  // form 로그인 비활성화에 따른 UsernamePasswordAuthenticationFilter 추가
+                .addFilter(new JwtAuthorizationFilter(authenticationManager(), userRepository))
                 .authorizeRequests()
                 .antMatchers("/api/v1/user/**")
                 .access("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
